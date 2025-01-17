@@ -1,0 +1,5 @@
+This is a geopackage parser written completely in javascript
+It parses out all necessary data from geopackage
+and outputs them into a valid geojson format.
+
+It is still very much a work in progress.
