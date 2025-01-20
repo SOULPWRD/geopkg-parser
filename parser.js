@@ -26,6 +26,7 @@ function parse(buffer) {
     });
 
     return Object.freeze({
+        header,
         pages
     });
 }
