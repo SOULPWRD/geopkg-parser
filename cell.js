@@ -18,27 +18,34 @@ function is_a_leaf(type) {
     return [10, 13].includes(type);
 }
 
-function parse_pointers(view, offset, number_of_cells) {
-    return utils.make_empty_list(number_of_cells).map(function (ignore, index) {
-        return index;
+function parse_pointers(view, page_start, pointers_offset, number_of_cells) {
+    return utils.make_empty_list(
+        number_of_cells
+    ).map(function (ignore, index) {
+
+// since cell pointers are the array of 2 byte pointers
+// we need to calculate even numbers based on the number of cells
+        return index * 2;
     }).reduce(function (pointers, order) {
-        pointers.push(view.getUint16(offset + order * 2));
+        const pointer_offset = view.getUint16(pointers_offset + order);
+        pointers.push(page_start + pointer_offset);
         return pointers;
     }, []);
 }
 
 function parse_leaf(view, start) {
-// 1) read varint for payload size
+
+// read varint for payload size
     const payload = varint.decode(view, start);
     start += payload.size;
 
-// 2) read varint for rowid
+// read varint for rowid
     const row = varint.decode(view, start);
     start += row.size;
 
-    // return offsets
+// return offset references
     return Object.freeze({
-        overflow_start: start + Number(payload.data),
+        overflow_start: view.getUint32(start + Number(payload.data)),
         payload_end: start + Number(payload.data),
         payload_start: start,
         row_id: row.data

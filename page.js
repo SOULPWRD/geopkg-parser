@@ -15,14 +15,19 @@
 /* jslint browser, node */
 
 import cell from "./cell.js";
+import record from "./record.js";
 
-function parse_header(view, start) {
-    const page_type = view.getUint8(start);
-    const freeblock_start = view.getUint16(start + 1);
-    const number_of_cells = view.getUint16(start + 3);
-    const cell_content_area = view.getUint16(start + 5);
-    const fragmented_free_bytes_nr = view.getUint8(start + 7);
-    const right_most_pointer = view.getUint32(start + 8);
+function parse_header(view, offset, page_start) {
+    const page_type = view.getUint8(offset);
+    const freeblock_start = view.getUint16(offset + 1);
+    const number_of_cells = view.getUint16(offset + 3);
+
+// cell content area is start of the cells
+// since start of the cell is an offset of the cell within the page
+// we need to sum start (offset) of the page with the offset of the cell
+    const cell_content_area = page_start + view.getUint16(offset + 5);
+    const fragmented_free_bytes_nr = view.getUint8(offset + 7);
+    const right_most_pointer = view.getUint32(offset + 8);
 
     return Object.freeze({
         cell_content_area,
@@ -34,35 +39,39 @@ function parse_header(view, start) {
     });
 }
 
-function parse_page(view, start) {
-    const header = parse_header(view, start);
+function parse_page(view, offset) {
+    const page_start = (
+        offset === 100
+        ? 0
+        : offset
+    );
+    const header = parse_header(view, offset, page_start);
     const cell_pointers = cell.parse_pointers(
         view,
+        page_start,
         (
             cell.is_a_leaf(header.page_type)
-            ? start + 8
-            : start + 12
+            ? offset + 8
+            : offset + 12
         ),
         header.number_of_cells
     );
-    const cell_starts = cell_pointers.map(function (pointer) {
-        return pointer;
-    });
 
-    const leaf_data = cell_starts.map(function (offset) {
+    const cells = cell_pointers.map(function (offset) {
         return cell.parse_leaf(view, offset);
     });
 
-    // test
-    // const [leaf] = leaf_data;
-
-    // const parsed_record = parse_record(view, leaf.record_start);
+    const records = cells.map(function (cell) {
+        return record.parse(view, cell.payload_start);
+    });
 
     return Object.freeze({
-        cell_starts,
+        cells,
         header,
-        leaf_data
+        records
     });
 }
 
-export default Object.freeze(parse_page);
+export default Object.freeze({
+    parse_page
+});
