@@ -130,8 +130,9 @@ function parse(view, offset = 0, encoding = "utf-8") {
 
     const [columns] = serial_types.reduce(function ([cols, offset], type) {
         const column = parse_column(view, type, offset, encoding);
+        cols.push(column.data);
         return [
-            [...cols, column.data],
+            cols,
             offset + column.size
         ];
     }, [[], serials_end]);
