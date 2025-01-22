@@ -3,6 +3,12 @@
 
 // A page parser
 // A page is is a block of data of a fixed size
+// There are 4 types of pages
+// 1. Table b-tree leaf page
+// 2. Table b-tree interior page
+// 3. Index b-tree leaf page
+// 4. Index b-tree interion page
+
 // A page consists of:
 // 1. Page header
 // 2. An array of cell pointers
@@ -16,6 +22,10 @@
 
 import cell from "./cell.js";
 import record from "./record.js";
+
+function is_leaf(type) {
+    return [10, 13].includes(type);
+}
 
 function parse_header(view, offset, page_start) {
     const page_type = view.getUint8(offset);
@@ -50,7 +60,7 @@ function parse_page(view, offset) {
         view,
         page_start,
         (
-            cell.is_a_leaf(header.page_type)
+            is_leaf(header.page_type)
             ? offset + 8
             : offset + 12
         ),
@@ -58,7 +68,7 @@ function parse_page(view, offset) {
     );
 
     const cells = cell_pointers.map(function (offset) {
-        return cell.parse_leaf(view, offset);
+        return cell.parse(view, offset);
     });
 
     const records = cells.map(function (cell) {
