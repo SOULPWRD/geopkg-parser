@@ -20,12 +20,14 @@ const sqlite_schema_attributes = [
  * @param {ArrayBuffer} buffer - The buffer containing the SQLite data.
  * @returns {Array<Object>} - An array of column objects representing the schema.
  */
-export function master_schema(buffer) {
+function master_schema(buffer) {
     const view = new DataView(buffer);
     return page.parse(view, 100)?.records?.map(
         function (record) {
-            const {columns} = record;
-            const pairs = utils.zip(sqlite_schema_attributes, columns)
+            const pairs = utils.zip(
+                sqlite_schema_attributes,
+                record.columns
+            );
             return utils.from_pairs(pairs);
         }
     );
