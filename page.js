@@ -49,7 +49,7 @@ function parse_header(view, offset, page_start) {
     });
 }
 
-function parse_page(view, offset) {
+export function parse_page(view, offset) {
     const page_start = (
         offset === 100
         ? 0
@@ -80,7 +80,3 @@ function parse_page(view, offset) {
         records
     });
 }
-
-export default Object.freeze({
-    parse_page
-});

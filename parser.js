@@ -10,7 +10,7 @@
 /*jslint browser, node */
 
 import parse_header from "./db_header.js";
-import page from "./page.js";
+import { parse_page } from "./page.js";
 import utils from "./utils.js";
 
 function parse(buffer) {
@@ -24,9 +24,9 @@ function parse(buffer) {
 
 // database header resides within the first 100 bytes of the first page
 // thus we need to start from the offset 100 in order to parse the page
-            return page.parse_page(view, 100);
+            return parse_page(view, 100);
         }
-        return page.parse_page(view, page_number * header.page_size);
+        return parse_page(view, page_number * header.page_size);
     });
 
     return Object.freeze({
