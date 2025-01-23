@@ -35,6 +35,7 @@ function parse_header(view, offset, page_start) {
 // cell content area is start of the cells
 // since start of the cell is an offset of the cell within the page
 // we need to sum start (offset) of the page with the offset of the cell
+
     const cell_content_area = page_start + view.getUint16(offset + 5);
     const fragmented_free_bytes_nr = view.getUint8(offset + 7);
     const right_most_pointer = view.getUint32(offset + 8);
@@ -49,7 +50,7 @@ function parse_header(view, offset, page_start) {
     });
 }
 
-export function parse_page(view, offset) {
+function parse(view, offset) {
     const page_start = (
         offset === 100
         ? 0
@@ -80,3 +81,5 @@ export function parse_page(view, offset) {
         records
     });
 }
+
+export default Object.freeze({parse});

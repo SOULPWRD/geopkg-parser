@@ -120,7 +120,8 @@ function parse_column(view, type, offset = 0, encoding = "utf-8") {
         );
     }
 
-// return default
+// return default value
+
     return Object.freeze({
         data: null,
         size: 0

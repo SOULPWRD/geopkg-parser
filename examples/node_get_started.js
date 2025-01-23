@@ -1,13 +1,13 @@
 import parser from "../parser.js";
-import { sqliteHeader, sqliteSchema } from "../sqlite.js";
+import sqlite from "../sqlite.js";
 import fs from "fs/promises";
 
 // Read local file data.gpkg to ArrayBuffer
 const file = await fs.readFile("./examples/test");
 const arrayBuffer = file.buffer;
 const parsed = parser(arrayBuffer);
-const header = sqliteHeader(arrayBuffer);
-const schema = sqliteSchema(arrayBuffer);
+const header = sqlite.header(arrayBuffer);
+const master_schema = sqlite.master_schema(arrayBuffer);
 
 parsed.pages.forEach((page) => {
     console.log("Page header");
@@ -19,4 +19,4 @@ parsed.pages.forEach((page) => {
 });
 
 console.log("Database header", header);
-console.log("Database schema", schema);
+console.log("Database master schema", master_schema);

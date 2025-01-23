@@ -11,6 +11,7 @@
 /*jslint browser, node */
 
 // the sqlite magic header is first 16 bytes
+
 function decode_ascii(buffer, start, end) {
     return new Uint8Array(buffer).slice(start, end).reduce(
         function (str, value) {
@@ -34,10 +35,13 @@ function decode8bit(buffer, start) {
 
 function parse(buffer) {
     const header_string = decode_ascii(buffer, 0, 16);
-    // size 2 bytes
+
+// size 2 bytes
+
     const page_size = decode16bit(buffer, 16);
 
-    // size 1 bytes
+// size 1 bytes
+
     const write_version = decode8bit(buffer, 18);
     const read_version = decode8bit(buffer, 19);
     const reserved_space = decode8bit(buffer, 20);
@@ -45,7 +49,8 @@ function parse(buffer) {
     const minimum_payload_fraction = decode8bit(buffer, 22);
     const leaf_payload_fraction = decode8bit(buffer, 23);
 
-    // size 4 bytes
+// size 4 bytes
+
     const file_change_counter = decode32bit(buffer, 24);
     const db_pages_count = decode32bit(buffer, 28);
     const free_list_trunk_page_nr = decode32bit(buffer, 32);
@@ -58,8 +63,10 @@ function parse(buffer) {
     const user_version = decode32bit(buffer, 60);
     const incremental_vacuum_mode = decode32bit(buffer, 64);
     const application_id = decode32bit(buffer, 68);
-    // there's 20 bytes reserved for expansion
-    // so we skip 71 - 91 bytes
+
+// there's 20 bytes reserved for expansion
+// so we skip 71 - 91 bytes
+
     const version_valid_for = decode32bit(buffer, 92);
     const sqlite_version = decode32bit(buffer, 96);
 

@@ -1,17 +1,18 @@
+// sqlite.js
+// This file export a public interface
+// It is a main entry file for sqlite function
+
 import parse_header from "./db_header.js";
-import { parse_page } from "./page.js";
+import page from "./page.js";
+import utils from "./utils.js";
 
-const SCHEMA_OFFSET = 100;
-
-/**
- * Parses the SQLite database header from the provided buffer.
- *
- * @param {ArrayBuffer} buffer - The buffer containing the SQLite data.
- * @returns {Object} - An object representing the parsed SQLite header.
- */
-export function sqliteHeader(buffer) {
-  return parse_header(buffer);
-}
+const sqlite_schema_attributes = [
+    "type",
+    "name",
+    "tbl_name",
+    "rootpage",
+    "sql"
+];
 
 /**
  * Parses the SQLite schema from the provided buffer.
@@ -19,9 +20,18 @@ export function sqliteHeader(buffer) {
  * @param {ArrayBuffer} buffer - The buffer containing the SQLite data.
  * @returns {Array<Object>} - An array of column objects representing the schema.
  */
-export function sqliteSchema(buffer) {
-  const view = new DataView(buffer);
-  return parse_page(view, SCHEMA_OFFSET)?.records?.map(
-    (record) => record.columns
-  );
+export function master_schema(buffer) {
+    const view = new DataView(buffer);
+    return page.parse(view, 100)?.records?.map(
+        function (record) {
+            const {columns} = record;
+            const pairs = utils.zip(sqlite_schema_attributes, columns)
+            return utils.from_pairs(pairs);
+        }
+    );
 }
+
+export default Object.freeze({
+    header: parse_header,
+    master_schema
+});

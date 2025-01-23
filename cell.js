@@ -16,6 +16,7 @@ function parse_pointers(view, page_start, pointers_offset, number_of_cells) {
 
 // since cell pointers are the array of 2 byte pointers
 // we need to calculate even numbers based on the number of cells
+
         return index * 2;
     }).reduce(function (pointers, order) {
         const pointer_offset = view.getUint16(pointers_offset + order);
@@ -27,16 +28,23 @@ function parse_pointers(view, page_start, pointers_offset, number_of_cells) {
 function parse(view, start) {
 
 // read varint for payload size
+    
     const payload = varint.decode(view, start);
     start += payload.size;
 
 // read varint for rowid
+
     const row = varint.decode(view, start);
     start += row.size;
+
 // return offset references
-    const overflow_start = start + Number(payload.data) > view.byteLength ? 
-        0 : 
-        view.getUint32(start + Number(payload.data));
+
+    const overflow_start = (
+        start + Number(payload.data) > view.byteLength
+        ? 0
+        : view.getUint32(start + Number(payload.data))
+    );
+        
     return Object.freeze({
         overflow_start,
         payload_end: start + Number(payload.data),

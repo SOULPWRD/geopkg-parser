@@ -24,8 +24,38 @@ function get_int(count) {
     };
 }
 
+function pair(first_arg, second_arg) {
+    return [first_arg, second_arg];
+}
+
+function from_pairs(pairs) {
+    return pairs.reduce(function (record, [key, value]) {
+        record[key] = value;
+        return record;
+    }, {});
+}
+
+function zip(first = [], second = []) {
+    let list = make_empty_list(first.length);
+    
+    if (first.length !== second.length) {
+        list = make_empty_list(
+            first.length < second.length
+            ? first.length
+            : second.length
+        );
+    }
+
+    return list.map(function (ignore, index) {
+        return pair(first[index], second[index]);
+    });
+}
+
 export default Object.freeze({
     decode_text,
+    from_pairs,
     get_int,
-    make_empty_list
+    make_empty_list,
+    pair,
+    zip
 });
