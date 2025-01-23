@@ -18,14 +18,15 @@ function parse(buffer) {
     const header = parse_header(buffer);
     const pages = utils.make_empty_list(
         header.db_pages_count
-    ).map(function (ignore, offset) {
-        if (offset === 0) {
+    ).map(function (ignore, page_number) {
+        console.log("Parsing page", page_number);
+        if (page_number === 0) {
 
 // database header resides within the first 100 bytes of the first page
 // thus we need to start from the offset 100 in order to parse the page
             return page.parse_page(view, 100);
         }
-        return page.parse_page(view, offset * header.page_size);
+        return page.parse_page(view, page_number * header.page_size);
     });
 
     return Object.freeze({

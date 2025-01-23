@@ -33,10 +33,12 @@ function parse(view, start) {
 // read varint for rowid
     const row = varint.decode(view, start);
     start += row.size;
-
 // return offset references
+    const overflow_start = start + Number(payload.data) > view.byteLength ? 
+        0 : 
+        view.getUint32(start + Number(payload.data));
     return Object.freeze({
-        overflow_start: view.getUint32(start + Number(payload.data)),
+        overflow_start,
         payload_end: start + Number(payload.data),
         payload_start: start,
         row_id: row.data

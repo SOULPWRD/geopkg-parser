@@ -12,6 +12,12 @@ import utils from "./utils.js";
 
 function decode_blob(view, type, offset) {
     const size = (type - 12) / 2;
+    if (view.byteLength <= offset + size) {
+        return Object.freeze({
+            data: new Uint8Array(view.buffer, offset, (offset + size) - view.byteLength),
+            size: 0
+        });
+    }
     return Object.freeze({
         data: new Uint8Array(view.buffer, offset, size),
         size
@@ -20,6 +26,13 @@ function decode_blob(view, type, offset) {
 
 function decode_text(view, type, offset, encoding = "utf-8") {
     const size = (type - 13) / 2;
+    if (view.byteLength <= offset + size) {
+        console.warn("Unabel to convert text to string", offset, size, view.byteLength);
+        return Object.freeze({
+            data: utils.decode_text(new Uint8Array(0, encoding)),
+            size: 0
+        });
+    }
     const bytes = new Uint8Array(view.buffer, offset, size);
     return Object.freeze({
         data: utils.decode_text(bytes, encoding),
@@ -118,7 +131,7 @@ function parse(view, offset = 0, encoding = "utf-8") {
     const header = varint.decode(view, offset);
     const header_bytes_left = Number(header.data) - header.size;
     const [serial_types, serials_end] = utils.make_empty_list(
-        header_bytes_left
+        header_bytes_left > -1 ? header_bytes_left : 0
     ).reduce(function ([types, offset]) {
         const serial = varint.decode(view, offset);
         types.push(Number(serial.data));

@@ -66,7 +66,6 @@ function parse_page(view, offset) {
         ),
         header.number_of_cells
     );
-
     const cells = cell_pointers.map(function (offset) {
         return cell.parse(view, offset);
     });
