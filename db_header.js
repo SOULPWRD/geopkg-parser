@@ -12,12 +12,12 @@
 
 // the sqlite magic header is first 16 bytes
 
-function decode_ascii(buffer, start, end) {
-    return new Uint8Array(buffer).slice(start, end).reduce(
-        function (str, value) {
-            return str + String.fromCharCode(value);
-        },
-        ""
+import utils from "./utils.js";
+
+function decode_ascii(buffer, start, end, encoding = "utf-8") {
+    return utils.decode_text(
+        new Uint8Array(buffer).slice(start, end),
+        encoding
     );
 }
 
