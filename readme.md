@@ -5,6 +5,15 @@ It parses out all necessary data from geopackage and outputs them into a valid g
 
 It is still very much a work in progress.
 
+## Installation
+```
+npm install
+```
+
+## Demos and testing
+For testing and running demos we use an interactive [Replete](https://github.com/jamesdiacono/Replete) environment. Please note, it is necessary to have [nodejs](https://nodejs.org/en) and [deno](https://deno.com/) installed on your local machine.
+Code imlementation, a simple demos and tests - all exists within a single file. There's no separation of concerns. It provides a strong file integrity and portability.
+
 ## API for SQLite
 
 ```javascript
