@@ -5,5 +5,9 @@
     "author": {
         "name": "Martin Pravda"
     },
-    "license": "MIT"
+    "license": "MIT",
+    "devDependencies": {
+        "acorn": "latest",
+        "acorn-walk": "latest"
+    }
 }
