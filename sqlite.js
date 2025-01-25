@@ -60,7 +60,6 @@ function from(buffer, table_name) {
         return column.name
     });
     const page_size = parse_db_header(buffer).page_size;
-    const table_page = page.parse(view, (rootpage - 1) * page_size);
     return page.parse(view, (rootpage - 1) * page_size)?.records?.map(
         function (record) {
             return utils.from_pairs(
