@@ -32,7 +32,7 @@ function pair(first_arg, second_arg) {
 }
 //demo pair(1, 2);
 
-function from_pairs(...pairs) {
+function from_pairs(pairs) {
     return pairs.reduce(function (record, [key, value]) {
         record[key] = value;
         return record;
@@ -56,6 +56,28 @@ function zip(first = [], second = []) {
     });
 }
 //demo zip([1,2], [3,4]);
+
+/**
+ * Parses an SQL CREATE TABLE statement and returns an array of column definitions.
+ *
+ * @param {string} sql - The SQL statement to parse.
+ * @returns {Array<{name: string, type: string}>} - An array of column definitions, each with a `name` and `type` property.
+ */
+function from_sql(sql = "") {
+    const match = sql.match(/\((.*)\)/);
+    if (!match) { 
+        return [];
+    }
+
+    return match[1].split(',').map(function (col) {
+        const parts = col.trim().split(' ');
+        return {
+            name: parts[0],
+            type: parts[1]
+        };
+    });
+}
+// demo from_sql("CREATE TABLE (id integer, name text, age integer)");
 
 //test import jscheck from "./tools/jscheck.js";
 //test const jsc = jscheck();
@@ -105,5 +127,6 @@ export default Object.freeze({
     get_int,
     make_empty_list,
     pair,
-    zip
+    zip,
+    from_sql
 });

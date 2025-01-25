@@ -19,4 +19,4 @@ parsed.pages.forEach((page) => {
 });
 
 console.log("Database header", header);
-console.log("Database master schema", master_schema);
+console.log("Database master schema", JSON.stringify(master_schema, null, 2));
