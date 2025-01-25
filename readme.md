@@ -32,6 +32,11 @@ fs.readFile(
 
         const header = sqlite.header(data.buffer);
         const schema = sqlite.master_schema(data.buffer);
+        const data = sqlite.from(data.buffer, "<TABLE NAME>");
     }
 );
 ```
+
+## Examples
+
+Follow the [examples](./examples) folder and run it with `node <file_name>.js`. We will add also browser examples soon.

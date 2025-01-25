@@ -9,6 +9,7 @@ const parsed = parser(arrayBuffer);
 const header = sqlite.header(arrayBuffer);
 const master_schema = sqlite.master_schema(arrayBuffer);
 
+// Get lower level data from the parser
 parsed.pages.forEach((page) => {
     console.log("Page header");
     console.table([page.header]);
@@ -20,3 +21,9 @@ parsed.pages.forEach((page) => {
 
 console.log("Database header", header);
 console.log("Database master schema", JSON.stringify(master_schema, null, 2));
+
+// Get data from all tables from master schema
+master_schema.forEach(function (table) {
+    const data = sqlite.from(arrayBuffer, table.name);
+    console.log("Table", table.name, "data", data);
+});

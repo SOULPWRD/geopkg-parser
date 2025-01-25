@@ -39,7 +39,40 @@ function master_schema(buffer) {
     );
 }
 
+/**
+ * Retrieves the data for a given SQLite table from the provided buffer.
+ *
+ * @param {ArrayBuffer} buffer - The buffer containing the SQLite data.
+ * @param {string} table_name - The name of the table to retrieve records for.
+ * @returns {Array<Object>} - An array of objects representing the table data.
+ */
+function from(buffer, table_name) {
+    const view = new DataView(buffer);
+    const schema = master_schema(buffer);
+    const schema_row = schema?.find(
+        function (row) {
+            const { type, tbl_name } = row;
+            return table_name === tbl_name && type === "table";
+        }
+    );
+    const { rootpage, columns } = schema_row;
+    const column_names = columns.map(function (column) {
+        return column.name
+    });
+    const page_size = parse_db_header(buffer).page_size;
+    const table_page = page.parse(view, (rootpage - 1) * page_size);
+    return page.parse(view, (rootpage - 1) * page_size)?.records?.map(
+        function (record) {
+            return utils.from_pairs(
+                utils.zip(column_names, record.columns)
+            );
+        }
+    );
+
+}
+
 export default Object.freeze({
     header: parse_db_header,
-    master_schema
+    master_schema,
+    from
 });

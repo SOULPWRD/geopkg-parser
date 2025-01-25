@@ -53,8 +53,8 @@ function parse_header(view, offset, page_start) {
 function parse(view, offset) {
     const page_start = (
         offset === 100
-        ? 0
-        : offset
+            ? 0
+            : offset
     );
     const header = parse_header(view, offset, page_start);
     const cell_pointers = cell.parse_pointers(
