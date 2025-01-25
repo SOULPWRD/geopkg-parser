@@ -20,10 +20,11 @@ parsed.pages.forEach((page) => {
 });
 
 console.log("Database header", header);
-console.log("Database master schema", JSON.stringify(master_schema, null, 2));
+console.log("Master schema");
+console.table(master_schema);
 
 // Get data from all tables from master schema
 master_schema.forEach(function (table) {
     const data = sqlite.from(arrayBuffer, table.name);
-    console.log("Table", table.name, "data", data);
+    console.table(data);
 });
