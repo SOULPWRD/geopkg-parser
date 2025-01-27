@@ -18,7 +18,7 @@ const sqlite_schema_attributes = [
  * Parses the SQLite schema from the provided buffer.
  *
  * @param {ArrayBuffer} buffer - The buffer containing the SQLite data.
- * @returns {Array<Object>} - An array of column objects representing the schema.
+ * @returns {Array<Object>} - An array of column objects representing the schema
  */
 function master_schema(buffer) {
     const view = new DataView(buffer);
@@ -31,10 +31,10 @@ function master_schema(buffer) {
                 record.columns
             );
             const result = utils.from_pairs(pairs);
-            return {
-                ...result,
-                columns,
-            }
+            return Object.assign(
+                result,
+                {columns}
+            );
         }
     );
 }
@@ -51,13 +51,13 @@ function from(buffer, table_name) {
     const schema = master_schema(buffer);
     const schema_row = schema?.find(
         function (row) {
-            const { type, tbl_name } = row;
+            const {tbl_name, type} = row;
             return table_name === tbl_name && type === "table";
         }
     );
-    const { rootpage, columns } = schema_row;
+    const {columns, rootpage} = schema_row;
     const column_names = columns.map(function (column) {
-        return column.name
+        return column.name;
     });
     const page_size = parse_db_header(buffer).page_size;
     return page.parse(view, (rootpage - 1) * page_size)?.records?.map(
@@ -71,7 +71,7 @@ function from(buffer, table_name) {
 }
 
 export default Object.freeze({
+    from,
     header: parse_db_header,
-    master_schema,
-    from
+    master_schema
 });
