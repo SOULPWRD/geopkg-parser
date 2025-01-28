@@ -28,7 +28,7 @@ function parse_pointers(view, page_start, pointers_offset, number_of_cells) {
 function parse(view, start) {
 
 // read varint for payload size
-    
+
     const payload = varint.decode(view, start);
     start += payload.size;
 
@@ -39,15 +39,13 @@ function parse(view, start) {
 
 // return offset references
 
-    const overflow_start = (
-        start + Number(payload.data) > view.byteLength
-        ? 0
-        : view.getUint32(start + Number(payload.data))
-    );
-        
+
     return Object.freeze({
-        overflow_start,
-        payload_end: start + Number(payload.data),
+
+// keep overflow empty for now
+
+        // overflow_start: view.getUint32(start + payload.data),
+        payload_end: start + payload.data,
         payload_start: start,
         row_id: row.data
     });

@@ -23,10 +23,6 @@
 import cell from "./cell.js";
 import record from "./record.js";
 
-function is_leaf(type) {
-    return [10, 13].includes(type);
-}
-
 function parse_header(view, offset, page_start) {
     const page_type = view.getUint8(offset);
     const freeblock_start = view.getUint16(offset + 1);
@@ -41,7 +37,15 @@ function parse_header(view, offset, page_start) {
     const right_most_pointer = view.getUint32(offset + 8);
 
     return Object.freeze({
-        cell_content_area,
+
+// the start of the content area
+// is defined in the spec file https://www.sqlite.org/fileformat2.html
+
+        cell_content_area: (
+            cell_content_area === 0
+            ? 65536
+            : cell_content_area
+        ),
         fragmented_free_bytes_nr,
         freeblock_start,
         number_of_cells,
@@ -50,21 +54,11 @@ function parse_header(view, offset, page_start) {
     });
 }
 
-function parse(view, offset) {
-    const page_start = (
-        offset === 100
-            ? 0
-            : offset
-    );
-    const header = parse_header(view, offset, page_start);
+function parse_table_leaf_page(view, header, offset, page_start) {
     const cell_pointers = cell.parse_pointers(
         view,
         page_start,
-        (
-            is_leaf(header.page_type)
-            ? offset + 8
-            : offset + 12
-        ),
+        offset + 8,
         header.number_of_cells
     );
     const cells = cell_pointers.map(function (offset) {
@@ -77,8 +71,29 @@ function parse(view, offset) {
 
     return Object.freeze({
         cells,
-        header,
         records
+    });
+}
+
+function parse(view, offset) {
+    const page_start = (
+        offset === 100
+        ? 0
+        : offset
+    );
+    const header = parse_header(view, offset, page_start);
+
+// page type 13 indicates the page is a btree - table leaf page
+
+    if (header.page_type === 13) {
+        const page = parse_table_leaf_page(view, header, offset, page_start);
+        return Object.freeze(
+            Object.assign({header}, page)
+        );
+    }
+
+    return Object.freeze({
+        header
     });
 }
 

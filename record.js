@@ -12,12 +12,19 @@ import utils from "./utils.js";
 
 function decode_blob(view, type, offset) {
     const size = (type - 12) / 2;
-    if (view.byteLength <= offset + size) {
-        return Object.freeze({
-            data: new Uint8Array(view.buffer, offset, (offset + size) - view.byteLength),
-            size: 0
-        });
-    }
+
+// comment for now
+
+    // if (view.byteLength <= offset + size) {
+    //     return Object.freeze({
+    //         data: new Uint8Array(
+    //             view.buffer,
+    //             offset,
+    //             (offset + size) - view.byteLength
+    //         ),
+    //         size: 0
+    //     });
+    // }
     return Object.freeze({
         data: new Uint8Array(view.buffer, offset, size),
         size
@@ -26,13 +33,6 @@ function decode_blob(view, type, offset) {
 
 function decode_text(view, type, offset, encoding = "utf-8") {
     const size = (type - 13) / 2;
-    if (view.byteLength <= offset + size) {
-        console.warn("Unabel to convert text to string", offset, size, view.byteLength);
-        return Object.freeze({
-            data: utils.decode_text(new Uint8Array(0, encoding)),
-            size: 0
-        });
-    }
     const bytes = new Uint8Array(view.buffer, offset, size);
     return Object.freeze({
         data: utils.decode_text(bytes, encoding),
@@ -85,7 +85,7 @@ function parse_column(view, type, offset = 0, encoding = "utf-8") {
 
     if (type === 6) {
         return Object.freeze({
-            // add 64 bit support
+// add support for 64 bit
             data: null,
             size: 8
         });
@@ -120,7 +120,7 @@ function parse_column(view, type, offset = 0, encoding = "utf-8") {
         );
     }
 
-// return default value
+// return a default value
 
     return Object.freeze({
         data: null,
@@ -128,29 +128,41 @@ function parse_column(view, type, offset = 0, encoding = "utf-8") {
     });
 }
 
-function parse(view, offset = 0, encoding = "utf-8") {
-    const header = varint.decode(view, offset);
-    const header_bytes_left = Number(header.data) - header.size;
-    const [serial_types, serials_end] = utils.make_empty_list(
-        header_bytes_left > -1 ? header_bytes_left : 0
-    ).reduce(function ([types, offset]) {
+function get_serial_types(view, offset, header_bytes_left) {
+    const types = [];
+
+    while (header_bytes_left > 0) {
         const serial = varint.decode(view, offset);
-        types.push(Number(serial.data));
-        return [
-            types,
-            offset + serial.size
-        ];
-    }, [[], offset + header.size]);
+        types.push(serial.data);
+        offset += serial.size;
+        header_bytes_left -= serial.size;
+    }
 
-    const [columns] = serial_types.reduce(function ([cols, offset], type) {
-        const column = parse_column(view, type, offset, encoding);
-        cols.push(column.data);
-        return [
-            cols,
-            offset + column.size
-        ];
-    }, [[], serials_end]);
+    return [types, offset];
+}
 
+function get_colums(view, serial_types, offset = 0, encoding = "utf-8") {
+    return serial_types.reduce(function ([columns, col_offset], serial) {
+        const column = parse_column(view, serial, col_offset, encoding);
+        columns.push(column.data);
+        return [columns, col_offset + column.size];
+    }, [[], offset]);
+}
+
+function parse(view, offset, encoding = "utf-8") {
+    const header = varint.decode(view, offset);
+    const header_bytes_left = header.data - header.size;
+    const [serial_types, serial_types_offset] = get_serial_types(
+        view,
+        offset + header.size,
+        header_bytes_left
+    );
+    const [columns] = get_colums(
+        view,
+        serial_types,
+        serial_types_offset,
+        encoding
+    );
     return Object.freeze({
         columns,
         header
