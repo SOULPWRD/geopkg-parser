@@ -2,6 +2,8 @@
 // This file export a public interface
 // It is a main entry file for sqlite function
 
+/*jslint browser, node */
+
 import parse_db_header from "./db_header.js";
 import page from "./page.js";
 import utils from "./utils.js";
