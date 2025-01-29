@@ -25,7 +25,18 @@ function parse_pointers(view, page_start, pointers_offset, number_of_cells) {
     }, []);
 }
 
-function parse(view, start) {
+function parse_table_interior(view, start) {
+
+// read varint for rowid
+
+    const row = varint.decode(view, start);
+
+    return Object.freeze({
+        row_id: row.data
+    });
+}
+
+function parse_table_leaf(view, start) {
 
 // read varint for payload size
 
@@ -52,6 +63,7 @@ function parse(view, start) {
 }
 
 export default Object.freeze({
-    parse,
+    parse_table_leaf,
+    parse_table_interior,
     parse_pointers
 });
