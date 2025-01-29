@@ -128,7 +128,7 @@ function parse_column(view, type, offset = 0, encoding = "utf-8") {
     });
 }
 
-function get_serial_types(view, offset, header_bytes_left) {
+function parse_serial_types(view, offset, header_bytes_left) {
     const types = [];
 
     while (header_bytes_left > 0) {
@@ -138,33 +138,37 @@ function get_serial_types(view, offset, header_bytes_left) {
         header_bytes_left -= serial.size;
     }
 
-    return [types, offset];
+    return Object.freeze({
+        data: types,
+        offset
+    });
 }
 
-function get_colums(view, serial_types, offset = 0, encoding = "utf-8") {
-    return serial_types.reduce(function ([columns, col_offset], serial) {
-        const column = parse_column(view, serial, col_offset, encoding);
-        columns.push(column.data);
-        return [columns, col_offset + column.size];
-    }, [[], offset]);
+function parse_colums(view, serial_types, offset = 0, encoding = "utf-8") {
+    return serial_types.reduce(function (columns, serial) {
+        const column = parse_column(view, serial, columns.offset, encoding);
+        columns.data.push(column.data);
+        columns.offset += column.size;
+        return columns;
+    }, {data: [], offset});
 }
 
 function parse(view, offset, encoding = "utf-8") {
     const header = varint.decode(view, offset);
     const header_bytes_left = header.data - header.size;
-    const [serial_types, serial_types_offset] = get_serial_types(
+    const serial_types = parse_serial_types(
         view,
         offset + header.size,
         header_bytes_left
     );
-    const [columns] = get_colums(
+    const columns = parse_colums(
         view,
-        serial_types,
-        serial_types_offset,
+        serial_types.data,
+        serial_types.offset,
         encoding
     );
     return Object.freeze({
-        columns,
+        columns: columns.data,
         header
     });
 }
