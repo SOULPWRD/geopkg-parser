@@ -70,8 +70,8 @@ function parse_table_leaf_page(view, header, offset, page_start) {
     });
 
     return Object.freeze({
-        header,
         cells,
+        header,
         records
     });
 }
@@ -94,6 +94,29 @@ function parse_table_interior_page(view, header, offset, page_start) {
     });
 }
 
+function parse_index_leaf_page(view, header, offset, page_start) {
+    const cell_pointers = cell.parse_pointers(
+        view,
+        page_start,
+        offset + 8,
+        header.number_of_cells
+    );
+
+    const cells = cell_pointers.map(function (offset) {
+        return cell.parse_index_leaf(view, offset);
+    });
+
+    const records = cells.map(function (cell) {
+        return record.parse(view, cell.payload_start);
+    });
+
+    return Object.freeze({
+        cells,
+        header,
+        records
+    });
+}
+
 function parse(view, offset) {
     const page_start = (
         offset === 100
@@ -103,9 +126,15 @@ function parse(view, offset) {
     const header = parse_header(view, offset, page_start);
 
 // page type 5 indicates the page is a table btree interior page
-    
+
     if (header.page_type === 5) {
         return parse_table_interior_page(view, header, offset, page_start);
+    }
+
+// page type 10 indicates the page is a index btree leaf page
+
+    if (header.page_type === 10) {
+        return parse_index_leaf_page(view, header, offset, page_start);
     }
 
 // page type 13 indicates the page is a table btree leaf page
@@ -113,8 +142,6 @@ function parse(view, offset) {
     if (header.page_type === 13) {
         return parse_table_leaf_page(view, header, offset, page_start);
     }
-
-    
 
     return Object.freeze({
         header

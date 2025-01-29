@@ -25,31 +25,22 @@ function parse_pointers(view, page_start, pointers_offset, number_of_cells) {
     }, []);
 }
 
-function parse_table_interior(view, start) {
-
-// read varint for rowid
-
-    const row = varint.decode(view, start);
+function parse_table_interior(view, start) {    
+    const left_child_page_nr = view.getUint32(start);
+    const row = varint.decode(view, start + 4);
 
     return Object.freeze({
+        left_child_page_nr,
         row_id: row.data
     });
 }
 
 function parse_table_leaf(view, start) {
-
-// read varint for payload size
-
     const payload = varint.decode(view, start);
     start += payload.size;
 
-// read varint for rowid
-
     const row = varint.decode(view, start);
     start += row.size;
-
-// return offset references
-
 
     return Object.freeze({
 
@@ -62,8 +53,20 @@ function parse_table_leaf(view, start) {
     });
 }
 
+function parse_index_leaf(view, start) {
+    const payload = varint.decode(view, start);
+    start += payload.size;
+
+
+    return Object.freeze({
+        payload_end: start + payload.data,
+        payload_start: start
+    });
+}
+
 export default Object.freeze({
-    parse_table_leaf,
+    parse_index_leaf,
+    parse_pointers,
     parse_table_interior,
-    parse_pointers
+    parse_table_leaf
 });
