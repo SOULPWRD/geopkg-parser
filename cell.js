@@ -25,7 +25,7 @@ function parse_pointers(view, page_start, pointers_offset, number_of_cells) {
     }, []);
 }
 
-function parse_table_interior(view, start) {    
+function parse_table_interior(view, start) {
     const left_child_page_nr = view.getUint32(start);
     const row = varint.decode(view, start + 4);
 
@@ -59,12 +59,33 @@ function parse_index_leaf(view, start) {
 
 
     return Object.freeze({
+
+// keep overflow empty for now
+
+        // overflow_start: view.getUint32(start + payload.data),
+        payload_end: start + payload.data,
+        payload_start: start
+    });
+}
+
+function parse_index_interior(view, start) {
+    const left_child_page_nr = view.getUint32(start);
+    const payload = varint.decode(view, start);
+    start += payload.size;
+
+    return Object.freeze({
+
+// keep overflow empty for now
+
+        // overflow_start: view.getUint32(start + payload.data),
+        left_child_page_nr,
         payload_end: start + payload.data,
         payload_start: start
     });
 }
 
 export default Object.freeze({
+    parse_index_interior,
     parse_index_leaf,
     parse_pointers,
     parse_table_interior,
