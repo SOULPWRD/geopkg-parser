@@ -10,8 +10,6 @@
 
 /*jslint browser, node */
 
-// the sqlite magic header is first 16 bytes
-
 import utils from "./utils.js";
 
 function decode_ascii(buffer, start, end, encoding = "utf-8") {
@@ -21,54 +19,45 @@ function decode_ascii(buffer, start, end, encoding = "utf-8") {
     );
 }
 
-function decode32bit(buffer, start) {
-    return new DataView(buffer).getUint32(start);
-}
+function parse(view) {
 
-function decode16bit(buffer, start) {
-    return new DataView(buffer).getUint16(start);
-}
+ // the sqlite magic header is first 16 bytes
 
-function decode8bit(buffer, start) {
-    return new DataView(buffer).getUint8(start);
-}
-
-function parse(buffer) {
-    const header_string = decode_ascii(buffer, 0, 16);
+    const header_string = decode_ascii(view.buffer, 0, 16);
 
 // size 2 bytes
 
-    const page_size = decode16bit(buffer, 16);
+    const page_size = view.getUint16(16);
 
 // size 1 bytes
 
-    const write_version = decode8bit(buffer, 18);
-    const read_version = decode8bit(buffer, 19);
-    const reserved_space = decode8bit(buffer, 20);
-    const maximum_payload_fraction = decode8bit(buffer, 21);
-    const minimum_payload_fraction = decode8bit(buffer, 22);
-    const leaf_payload_fraction = decode8bit(buffer, 23);
+    const write_version = view.getUint8(18);
+    const read_version = view.getUint8(19);
+    const reserved_space = view.getUint8(20);
+    const maximum_payload_fraction = view.getUint8(21);
+    const minimum_payload_fraction = view.getUint8(22);
+    const leaf_payload_fraction = view.getUint8(23);
 
 // size 4 bytes
 
-    const file_change_counter = decode32bit(buffer, 24);
-    const db_pages_count = decode32bit(buffer, 28);
-    const free_list_trunk_page_nr = decode32bit(buffer, 32);
-    const free_list_pages_count = decode32bit(buffer, 36);
-    const schema_cookie = decode32bit(buffer, 40);
-    const schema_format_nr = decode32bit(buffer, 44);
-    const default_page_cache_size = decode32bit(buffer, 48);
-    const largest_root_b_tree = decode32bit(buffer, 52);
-    const db_text_encoding = decode32bit(buffer, 56);
-    const user_version = decode32bit(buffer, 60);
-    const incremental_vacuum_mode = decode32bit(buffer, 64);
-    const application_id = decode32bit(buffer, 68);
+    const file_change_counter = view.getUint32(24);
+    const db_pages_count = view.getUint32(28);
+    const free_list_trunk_page_nr = view.getUint32(32);
+    const free_list_pages_count = view.getUint32(36);
+    const schema_cookie = view.getUint32(40);
+    const schema_format_nr = view.getUint32(44);
+    const default_page_cache_size = view.getUint32(48);
+    const largest_root_b_tree = view.getUint32(52);
+    const db_text_encoding = view.getUint32(56);
+    const user_version = view.getUint32(60);
+    const incremental_vacuum_mode = view.getUint32(64);
+    const application_id = view.getUint32(68);
 
 // there's 20 bytes reserved for expansion
 // so we skip 71 - 91 bytes
 
-    const version_valid_for = decode32bit(buffer, 92);
-    const sqlite_version = decode32bit(buffer, 96);
+    const version_valid_for = view.getUint32(92);
+    const sqlite_version = view.getUint32(96);
 
     return Object.freeze({
         application_id,
@@ -99,14 +88,14 @@ function parse(buffer) {
 
 // tests
 // split the text into the array of charcodes
-// const the_header_string = "SQLite format 3";
+// const header_string = "SQLite format 3";
 // function create_test_header() {
 //     const header_buffer = new ArrayBuffer(100);
 //     const view = new DataView(header_buffer);
 
 //     // fill first 16 bytes with the header string
 //     // offset 0 - 16
-//     the_header_string.slice(0, 16).split("").forEach(function (char, offset) {
+//     header_string.slice(0, 16).split("").forEach(function (char, offset) {
 //         view.setUint8(offset, char.charCodeAt(0));
 //     });
 
@@ -134,4 +123,4 @@ function parse(buffer) {
 // console.log(decode_ascii(buffer, 0, 16));
 // console.log(decode16bit(buffer, 16));
 
-export default Object.freeze(parse);
+export default Object.freeze({parse});

@@ -9,13 +9,13 @@
 
 /*jslint browser, node */
 
-import parse_header from "./db_header.js";
+import db_header from "./db_header.js";
 import page from "./page.js";
 import utils from "./utils.js";
 
 function parse(buffer) {
     const view = new DataView(buffer);
-    const header = parse_header(buffer);
+    const header = db_header.parse(view);
     const pages = utils.make_empty_list(
         header.db_pages_count
     ).map(function (ignore, page_number) {

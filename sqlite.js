@@ -4,7 +4,7 @@
 
 /*jslint browser, node */
 
-import parse_db_header from "./db_header.js";
+import db_header from "./db_header.js";
 import page from "./page.js";
 import utils from "./utils.js";
 
@@ -61,7 +61,7 @@ function from(buffer, table_name) {
     const column_names = columns.map(function (column) {
         return column.name;
     });
-    const page_size = parse_db_header(buffer).page_size;
+    const page_size = db_header.parse(view).page_size;
     return page.parse(view, (rootpage - 1) * page_size)?.records?.map(
         function (record) {
             return utils.from_pairs(
@@ -69,11 +69,15 @@ function from(buffer, table_name) {
             );
         }
     );
+}
 
+function header(buffer) {
+    const view = new DataView(buffer);
+    return db_header.parse(view);
 }
 
 export default Object.freeze({
     from,
-    header: parse_db_header,
+    header,
     master_schema
 });
