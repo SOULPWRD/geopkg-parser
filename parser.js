@@ -16,6 +16,7 @@ import utils from "./utils.js";
 function parse(buffer) {
     const view = new DataView(buffer);
     const header = db_header.parse(view);
+    const enconding = db_header.encodings[header.db_text_encoding - 1];
     const pages = utils.make_empty_list(
         header.db_pages_count
     ).map(function (ignore, page_number) {
@@ -24,9 +25,9 @@ function parse(buffer) {
 // database header resides within the first 100 bytes of the first page
 // thus we need to start from the offset 100 in order to parse the page
 
-            return page.parse(view, 100);
+            return page.parse(view, 100, enconding);
         }
-        return page.parse(view, page_number * header.page_size);
+        return page.parse(view, page_number * header.page_size, enconding);
     });
 
     return Object.freeze({

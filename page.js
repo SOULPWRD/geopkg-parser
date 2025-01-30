@@ -59,13 +59,13 @@ function parse_header(view, offset, page_start) {
     });
 }
 
-function parse_table_leaf_page(view, cell_pointers) {
+function parse_table_leaf_page(view, cell_pointers, encoding) {
     const cells = cell_pointers.map(function (offset) {
         return cell.parse_table_leaf(view, offset);
     });
 
     const records = cells.map(function (cell) {
-        return record.parse(view, cell.payload_start);
+        return record.parse(view, cell.payload_start, encoding);
     });
 
     return Object.freeze({
@@ -84,13 +84,13 @@ function parse_table_interior_page(view, cell_pointers) {
     });
 }
 
-function parse_index_leaf_page(view, cell_pointers) {
+function parse_index_leaf_page(view, cell_pointers, encoding) {
     const cells = cell_pointers.map(function (offset) {
         return cell.parse_index_leaf(view, offset);
     });
 
     const records = cells.map(function (cell) {
-        return record.parse(view, cell.payload_start);
+        return record.parse(view, cell.payload_start, encoding);
     });
 
     return Object.freeze({
@@ -99,13 +99,13 @@ function parse_index_leaf_page(view, cell_pointers) {
     });
 }
 
-function parse_index_interior_page(view, cell_pointers) {
+function parse_index_interior_page(view, cell_pointers, encoding) {
     const cells = cell_pointers.map(function (offset) {
         return cell.parse_index_interior(view, offset);
     });
 
     const records = cells.map(function (cell) {
-        return record.parse(view, cell.payload_start);
+        return record.parse(view, cell.payload_start, encoding);
     });
 
     return Object.freeze({
@@ -114,7 +114,7 @@ function parse_index_interior_page(view, cell_pointers) {
     });
 }
 
-function parse(view, offset) {
+function parse(view, offset, encoding) {
     const page_start = (
         offset === 100
         ? 0
@@ -137,7 +137,7 @@ function parse(view, offset) {
 // page type 2 indicates the page is an index btree interior page
 
     if (header.page_type === 2) {
-        page = parse_index_interior_page(view, cell_pointers);
+        page = parse_index_interior_page(view, cell_pointers, encoding);
     }
 
 // page type 5 indicates the page is a table btree interior page
@@ -149,13 +149,13 @@ function parse(view, offset) {
 // page type 10 indicates the page is an index btree leaf page
 
     if (header.page_type === 10) {
-        page = parse_index_leaf_page(view, cell_pointers);
+        page = parse_index_leaf_page(view, cell_pointers, encoding);
     }
 
 // page type 13 indicates the page is a table btree leaf page
 
     if (header.page_type === 13) {
-        page = parse_table_leaf_page(view, cell_pointers);
+        page = parse_table_leaf_page(view, cell_pointers, encoding);
     }
 
     return Object.freeze(

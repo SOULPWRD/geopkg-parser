@@ -12,18 +12,13 @@
 
 import utils from "./utils.js";
 
-function decode_ascii(buffer, start, end, encoding = "utf-8") {
-    return utils.decode_text(
-        new Uint8Array(buffer).slice(start, end),
-        encoding
-    );
-}
+const encodings = [
+    "utf-8",
+    "utf-16le",
+    "utf-16be"
+];
 
 function parse(view) {
-
- // the sqlite magic header is first 16 bytes
-
-    const header_string = decode_ascii(view.buffer, 0, 16);
 
 // size 2 bytes
 
@@ -58,6 +53,13 @@ function parse(view) {
 
     const version_valid_for = view.getUint32(92);
     const sqlite_version = view.getUint32(96);
+
+// the sqlite magic header is first 16 bytes
+
+    const header_string = utils.decode_text(
+        new Uint8Array(view.buffer).slice(0, 16),
+        encodings[db_text_encoding - 1]
+    );
 
     return Object.freeze({
         application_id,
@@ -123,4 +125,4 @@ function parse(view) {
 // console.log(decode_ascii(buffer, 0, 16));
 // console.log(decode16bit(buffer, 16));
 
-export default Object.freeze({parse});
+export default Object.freeze({encodings, parse});
