@@ -65,12 +65,12 @@ function zip(first = [], second = []) {
  */
 function from_sql(sql = "") {
     const match = sql.match(/\((.*)\)/);
-    if (!match) { 
+    if (!match) {
         return [];
     }
 
-    return match[1].split(',').map(function (col) {
-        const parts = col.trim().split(' ');
+    return match[1].split(",").map(function (col) {
+        const parts = col.trim().split(" ");
         return {
             name: parts[0],
             type: parts[1]
@@ -124,9 +124,9 @@ function from_sql(sql = "") {
 export default Object.freeze({
     decode_text,
     from_pairs,
+    from_sql,
     get_int,
     make_empty_list,
     pair,
-    zip,
-    from_sql
+    zip
 });
