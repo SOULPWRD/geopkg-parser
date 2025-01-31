@@ -20,6 +20,12 @@ const encodings = [
 
 function parse(view) {
 
+// the sqlite magic header is first 16 bytes
+
+    const header_string = utils.decode_text(
+        new Uint8Array(view.buffer).slice(0, 16)        
+    );
+
 // size 2 bytes
 
     const page_size = view.getUint16(16);
@@ -54,13 +60,6 @@ function parse(view) {
     const version_valid_for = view.getUint32(92);
     const sqlite_version = view.getUint32(96);
 
-// the sqlite magic header is first 16 bytes
-
-    const header_string = utils.decode_text(
-        new Uint8Array(view.buffer).slice(0, 16),
-        encodings[db_text_encoding - 1]
-    );
-
     return Object.freeze({
         application_id,
         db_pages_count,
@@ -87,42 +86,7 @@ function parse(view) {
     });
 }
 
-
-// tests
-// split the text into the array of charcodes
-// const header_string = "SQLite format 3";
-// function create_test_header() {
-//     const header_buffer = new ArrayBuffer(100);
-//     const view = new DataView(header_buffer);
-
-//     // fill first 16 bytes with the header string
-//     // offset 0 - 16
-//     header_string.slice(0, 16).split("").forEach(function (char, offset) {
-//         view.setUint8(offset, char.charCodeAt(0));
-//     });
-
-//     // add page size
-//     // offset 16 - 18
-//     // value between 512 and 32768 inclusive
-//     // or the value 1 representing a page size of 65536
-//     view.setUint16(16, 512, false);
-
-//     // file format write version
-//     // values between 1 (legacy) or 2 (wal)
-//     view.setUint8(18, 2);
-//     // file format read version
-//     // values between 1 (legacy) or 2 (wal)
-//     view.setUint8(19, 2);
-
-//     return header_buffer;
-// }
-
-
-// // make a buffer of a fix length with a corresponeding view
-// // and fill the buffer via view
-// const buffer = create_test_header();
-
-// console.log(decode_ascii(buffer, 0, 16));
-// console.log(decode16bit(buffer, 16));
+//demo import header_test from "./mocks/db_header.js"
+//demo parse(header_test.create_view());
 
 export default Object.freeze({encodings, parse});
