@@ -2,10 +2,7 @@
 // parser.js
 
 // This file contains the main implementation of the geopackage parser
-// which extracts tabular data and turns them into IR format
-// This is an isomorphic file that can be used in both environments
-// either in browser or on the server side using nodejs, deno
-// or other server side runtimes.
+// which extracts tabular data and turns them into readable tabular format
 
 /*jslint browser, node */
 
@@ -13,8 +10,7 @@ import db_header from "./db_header.js";
 import page from "./page.js";
 import utils from "./utils.js";
 
-function parse(buffer) {
-    const view = new DataView(buffer);
+function parse(view) {
     const header = db_header.parse(view);
     const enconding = db_header.encodings[header.db_text_encoding - 1];
     const pages = utils.make_empty_list(

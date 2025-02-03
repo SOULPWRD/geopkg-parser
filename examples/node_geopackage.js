@@ -1,10 +1,11 @@
-import parser from "../parser.js";
+import sqlite from "../sqlite.js";
 import fs from "fs/promises";
 
 // Read local file data.gpkg to ArrayBuffer
 const file = await fs.readFile("./examples/data.gpkg");
-const arrayBuffer = file.buffer;
-const parsed = parser(arrayBuffer);
+const array_buffer = file.buffer;
+const database = sqlite(array_buffer);
+const parsed = database.parsed();
 
 parsed.pages.forEach((page) => {
     console.log("Page header");

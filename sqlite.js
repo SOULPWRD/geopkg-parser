@@ -1,12 +1,14 @@
 // sqlite.js
-// This file export a public interface
-// It is a main entry file for sqlite function
+// This file exports a public interface
+// It is a main entry file for the sqlite module
+// Sqlite instance exposes several methods that operate on top of given buffer
+// It is also a main module for the geopackge module
 
 /*jslint browser, node */
 
-import db_header from "./db_header.js";
 import page from "./page.js";
 import utils from "./utils.js";
+import parse from "./parser.js";
 
 const sqlite_schema_attributes = [
     "type",
@@ -16,68 +18,63 @@ const sqlite_schema_attributes = [
     "sql"
 ];
 
-/**
- * Parses the SQLite schema from the provided buffer.
- *
- * @param {ArrayBuffer} buffer - The buffer containing the SQLite data.
- * @returns {Array<Object>} - An array of column objects representing the schema
- */
-function master_schema(buffer) {
+function sqlite(buffer) {
     const view = new DataView(buffer);
-    return page.parse(view, 100)?.records?.map(
-        function (record) {
-            const sql_create = record.columns[record.columns.length - 1];
-            const columns = utils.from_sql(sql_create);
-            const pairs = utils.zip(
-                sqlite_schema_attributes,
-                record.columns
-            );
-            const result = utils.from_pairs(pairs);
-            return Object.assign(
-                result,
-                {columns}
-            );
-        }
-    );
-}
+    const database = parse(view);
 
-/**
- * Retrieves the data for a given SQLite table from the provided buffer.
- *
- * @param {ArrayBuffer} buffer - The buffer containing the SQLite data.
- * @param {string} table_name - The name of the table to retrieve records for.
- * @returns {Array<Object>} - An array of objects representing the table data.
- */
-function from(buffer, table_name) {
-    const view = new DataView(buffer);
-    const schema = master_schema(buffer);
-    const schema_row = schema?.find(
-        function (row) {
-            const {tbl_name, type} = row;
-            return table_name === tbl_name && type === "table";
-        }
-    );
-    const {columns, rootpage} = schema_row;
-    const column_names = columns.map(function (column) {
-        return column.name;
+    function parsed(offset = 0, limit = undefined) {
+        return Object.freeze({
+            header: database.header,
+            pages: database.pages.slice(offset, limit)
+        });
+    }
+
+    function master_schema() {
+        return page.parse(view, 100)?.records?.map(
+            function (record) {
+                const sql_create = record.columns[record.columns.length - 1];
+                const columns = utils.from_sql(sql_create);
+                const pairs = utils.zip(
+                    sqlite_schema_attributes,
+                    record.columns
+                );
+                const result = utils.from_pairs(pairs);
+                return Object.assign(
+                    result,
+                    {columns}
+                );
+            }
+        );
+    }
+
+    function from(table_name, offset = 0, limit = undefined) {
+        const schema = master_schema();
+        const schema_row = schema?.find(
+            function (row) {
+                const {tbl_name, type} = row;
+                return table_name === tbl_name && type === "table";
+            }
+        );
+        const {columns, rootpage} = schema_row;
+        const column_names = columns.map(function (column) {
+            return column.name;
+        });
+        return page.parse(view, (
+            rootpage - 1
+        ) * database.header.page_size)?.records?.map(
+            function (record) {
+                return utils.from_pairs(
+                    utils.zip(column_names, record.columns)
+                );
+            }
+        ).slice(offset, limit);
+    }
+
+    return Object.freeze({
+        from,
+        master_schema,
+        parsed
     });
-    const page_size = db_header.parse(view).page_size;
-    return page.parse(view, (rootpage - 1) * page_size)?.records?.map(
-        function (record) {
-            return utils.from_pairs(
-                utils.zip(column_names, record.columns)
-            );
-        }
-    );
 }
 
-function header(buffer) {
-    const view = new DataView(buffer);
-    return db_header.parse(view);
-}
-
-export default Object.freeze({
-    from,
-    header,
-    master_schema
-});
+export default Object.freeze(sqlite);

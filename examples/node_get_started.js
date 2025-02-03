@@ -4,10 +4,10 @@ import fs from "fs/promises";
 
 // Read local file data.gpkg to ArrayBuffer
 const file = await fs.readFile("./examples/test");
-const arrayBuffer = file.buffer;
-const parsed = parser(arrayBuffer);
-const header = sqlite.header(arrayBuffer);
-const master_schema = sqlite.master_schema(arrayBuffer);
+const array_buffer = file.buffer;
+const database = sqlite(array_buffer);
+const parsed = database.parsed();
+const master_schema = database.master_schema();
 
 // Get lower level data from the parser
 parsed.pages.forEach((page) => {
@@ -19,12 +19,12 @@ parsed.pages.forEach((page) => {
     console.table(page.records);
 });
 
-console.log("Database header", header);
+console.log("Database header", parsed.header);
 console.log("Master schema");
 console.table(master_schema);
 
 // Get data from all tables from master schema
 master_schema.forEach(function (table) {
-    const data = sqlite.from(arrayBuffer, table.name);
+    const data = database.from(table.name);
     console.table(data);
 });
