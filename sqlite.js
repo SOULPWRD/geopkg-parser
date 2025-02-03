@@ -9,6 +9,7 @@
 import page from "./page.js";
 import utils from "./utils.js";
 import parse from "./parser.js";
+import db_header from "./db_header.js";
 
 const sqlite_schema_attributes = [
     "type",
@@ -30,8 +31,21 @@ function sqlite(buffer) {
     }
 
     function master_schema() {
-        return page.parse(view, 100)?.records?.map(
-            function (record) {
+        const pages = page.traverse(
+            view,
+            database.header.page_size,
+            0,
+            db_header.encodings[database.header.db_text_encoding - 1],
+            100
+        );
+
+        return pages.map(function (page) {
+            return page?.records.filter(function (record) {
+                return (
+                    record.columns[0] !== "index"
+                    && record.columns[0] !== "trigger"
+                );
+            }).map(function (record) {
                 const sql_create = record.columns[record.columns.length - 1];
                 const columns = utils.from_sql(sql_create);
                 const pairs = utils.zip(
@@ -43,8 +57,8 @@ function sqlite(buffer) {
                     result,
                     {columns}
                 );
-            }
-        );
+            });
+        }).flat()
     }
 
     function from(table_name, offset = 0, limit = undefined) {
@@ -59,15 +73,16 @@ function sqlite(buffer) {
         const column_names = columns.map(function (column) {
             return column.name;
         });
-        return page.parse(view, (
-            rootpage - 1
-        ) * database.header.page_size)?.records?.map(
-            function (record) {
-                return utils.from_pairs(
-                    utils.zip(column_names, record.columns)
-                );
-            }
-        ).slice(offset, limit);
+
+        return page.traverse(
+            view, database.header.page_size, rootpage - 1
+        ).map(function (page) {
+            return page.records.map( function (record) {
+                    return utils.from_pairs(
+                        utils.zip(column_names, record.columns)
+                    );
+                })
+        }).flat().slice(offset, limit);
     }
 
     return Object.freeze({

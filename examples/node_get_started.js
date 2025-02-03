@@ -25,6 +25,7 @@ console.table(master_schema);
 
 // Get data from all tables from master schema
 master_schema.forEach(function (table) {
+    console.log("Table: ", table.name);
     const data = database.from(table.name);
     console.table(data);
 });

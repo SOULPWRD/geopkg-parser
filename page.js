@@ -163,4 +163,35 @@ function parse(view, offset, encoding) {
     );
 }
 
-export default Object.freeze({parse});
+function traverse(view, page_size, page_nr, encoding, offset = 0) {
+    const cells_queue = [];
+    const pages = [];
+
+// simulate first left child page_nr for the very first page
+// plus since first page starts at the offset 100 add even an offset
+
+    cells_queue.push({left_child_page_nr: page_nr, offset});
+
+    while (cells_queue.length > 0) {
+        const cell = cells_queue.shift();
+        const page = parse(
+            view,
+            page_size * cell.left_child_page_nr + (cell.offset || 0),
+            encoding
+        );
+        if (is_leaf(page.header.page_type)) {
+            pages.push(page);
+        } else {
+            page.cells.forEach(function (cell) {
+                cells_queue.push(cell);
+            });
+        }
+    }
+
+    return pages;
+}
+
+export default Object.freeze({
+    parse,
+    traverse
+});
