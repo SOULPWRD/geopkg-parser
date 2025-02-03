@@ -27,12 +27,17 @@ fs.readFile(
     "./path/to/your/favourite/sqlite/database/file",
     function (err, data) {
         if (err) {
-            // handle error
+// handle error
         }
 
-        const header = sqlite.header(data.buffer);
-        const schema = sqlite.master_schema(data.buffer);
-        const data = sqlite.from(data.buffer, "<TABLE NAME>");
+        const db = sqlite(data.buffer);
+// these are raw parsed sqlite pages and db headers
+// parsed.header
+// parsed.pages
+        const parsed = db.parse();
+
+        const schema = sqlite.master_schema();
+        const data = sqlite.from("<TABLE NAME>");
     }
 );
 ```
