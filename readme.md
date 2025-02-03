@@ -12,7 +12,7 @@ npm install
 
 ## Demos and testing
 For testing and running demos we use an interactive [Replete](https://github.com/jamesdiacono/Replete) environment. Please note, it is necessary to have [nodejs](https://nodejs.org/en) and [deno](https://deno.com/) installed on your local machine.
-Code imlementation, a simple demos and tests - all exists within a single file. There's no separation of concerns. It provides a strong file integrity and portability.
+Code imlementation, simple demos and tests - all exists within a single file. There's no separation of concerns. It provides a strong file integrity and portability.
 
 ## API for SQLite
 
@@ -27,7 +27,7 @@ fs.readFile(
     "./path/to/your/favourite/sqlite/database/file",
     function (err, data) {
         if (err) {
-            // handler error
+            // handle error
         }
 
         const header = sqlite.header(data.buffer);
