@@ -1,3 +1,5 @@
+/*jslint browser, node, devel */
+
 import sqlite from "../sqlite.js";
 import fs from "fs/promises";
 
@@ -5,9 +7,10 @@ import fs from "fs/promises";
 const file = await fs.readFile("./examples/data.gpkg");
 const array_buffer = file.buffer;
 const database = sqlite(array_buffer);
+const master_schema = database.master_schema();
 const parsed = database.parsed();
 
-parsed.pages.forEach((page) => {
+parsed.pages.forEach(function (page) {
     console.log("Page header");
     console.table([page.header]);
     console.log("Cells");
@@ -17,3 +20,9 @@ parsed.pages.forEach((page) => {
 });
 
 console.log("Database header", parsed.header);
+
+master_schema.forEach(function (table) {
+    console.log("Table: ", table.name);
+    const data = database.from(table.name);
+    console.table(data);
+});

@@ -9,7 +9,6 @@
 import page from "./page.js";
 import utils from "./utils.js";
 import parse from "./parser.js";
-import db_header from "./db_header.js";
 
 const sqlite_schema_attributes = [
     "type",
@@ -22,9 +21,33 @@ const sqlite_schema_attributes = [
 function sqlite(buffer) {
     const view = new DataView(buffer);
     const database = parse(view);
-    const charset_encoding = db_header.encodings[
-        database.header.db_text_encoding - 1
-    ];
+
+// The 'traverse' function accepts a page number and finds the page.
+// If the given page is an interior page,
+// it interates through the child pages untils it finds all leaf pages.
+
+    function traverse(page_nr) {
+        const leafs = [];
+        const pages_queue = [
+            database.pages[page_nr]
+        ];
+
+        while (pages_queue.length > 0) {
+            const p = pages_queue.shift();
+
+            if (page.is_leaf(p.header.page_type)) {
+                leafs.push(p);
+            } else {
+                p.cells.forEach(function (cell) {
+                    pages_queue.push(
+                        database.pages[cell.left_child_page_nr - 1]
+                    );
+                });
+            }
+        }
+
+        return leafs;
+    }
 
     function parsed(offset = 0, limit = undefined) {
         return Object.freeze({
@@ -34,19 +57,13 @@ function sqlite(buffer) {
     }
 
     function master_schema() {
-        const pages = page.traverse(
-            view,
-            database.header.page_size,
-            0,
-            100,
-            charset_encoding
-        );
-
-        return pages.map(function (page) {
+        return traverse(0).map(function (page) {
             return page?.records.filter(function (record) {
+
+// get only tables for now
+
                 return (
-                    record.columns[0] !== "index"
-                    && record.columns[0] !== "trigger"
+                    record.columns[0] === "table"
                 );
             }).map(function (record) {
                 const sql_create = record.columns[record.columns.length - 1];
@@ -77,12 +94,8 @@ function sqlite(buffer) {
             return column.name;
         });
 
-        return page.traverse(
-            view,
-            database.header.page_size,
-            rootpage - 1,
-            0,
-            charset_encoding
+        return traverse(
+            rootpage - 1
         ).map(function (page) {
             return page.records.map(function (record) {
                 return utils.from_pairs(
