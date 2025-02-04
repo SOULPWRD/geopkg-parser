@@ -163,27 +163,46 @@ function parse(view, offset, encoding) {
     );
 }
 
-function traverse(view, page_size, page_nr, encoding, offset = 0) {
+// The traverse function traverse through each page within the given boundaries
+// If the page is not a leaf page, it goes through the interior pages until it
+// finds all leaf pages
+
+function traverse(
+    view,
+    page_size,
+    page_nr,
+    page_offset = 0,
+    encoding = "utf-8"
+) {
     const cells_queue = [];
     const pages = [];
 
-// simulate first left child page_nr for the very first page
-// plus since first page starts at the offset 100 add even an offset
+// Since the first page starts at the offset <100, page_size)
+// we need to start with the default page_offset defined in the function params
 
-    cells_queue.push({left_child_page_nr: page_nr, offset});
+    cells_queue.push({left_child_page_nr: page_nr, page_offset});
 
     while (cells_queue.length > 0) {
-        const cell = cells_queue.shift();
+        const c = cells_queue.shift();
+        page_offset = (
+            page_size * c.left_child_page_nr + c.page_offset
+        );
         const page = parse(
             view,
-            page_size * cell.left_child_page_nr + (cell.offset || 0),
+            page_offset,
             encoding
         );
+
         if (is_leaf(page.header.page_type)) {
             pages.push(page);
         } else {
             page.cells.forEach(function (cell) {
-                cells_queue.push(cell);
+                cells_queue.push(
+
+// for the consequent cells, additional page_offset is 0
+
+                    Object.assign({}, cell, {page_offset: 0})
+                );
             });
         }
     }

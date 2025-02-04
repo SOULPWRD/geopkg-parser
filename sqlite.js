@@ -22,6 +22,9 @@ const sqlite_schema_attributes = [
 function sqlite(buffer) {
     const view = new DataView(buffer);
     const database = parse(view);
+    const charset_encoding = db_header.encodings[
+        database.header.db_text_encoding - 1
+    ];
 
     function parsed(offset = 0, limit = undefined) {
         return Object.freeze({
@@ -35,8 +38,8 @@ function sqlite(buffer) {
             view,
             database.header.page_size,
             0,
-            db_header.encodings[database.header.db_text_encoding - 1],
-            100
+            100,
+            charset_encoding
         );
 
         return pages.map(function (page) {
@@ -58,7 +61,7 @@ function sqlite(buffer) {
                     {columns}
                 );
             });
-        }).flat()
+        }).flat();
     }
 
     function from(table_name, offset = 0, limit = undefined) {
@@ -75,13 +78,17 @@ function sqlite(buffer) {
         });
 
         return page.traverse(
-            view, database.header.page_size, rootpage - 1
+            view,
+            database.header.page_size,
+            rootpage - 1,
+            0,
+            charset_encoding
         ).map(function (page) {
-            return page.records.map( function (record) {
-                    return utils.from_pairs(
-                        utils.zip(column_names, record.columns)
-                    );
-                })
+            return page.records.map(function (record) {
+                return utils.from_pairs(
+                    utils.zip(column_names, record.columns)
+                );
+            });
         }).flat().slice(offset, limit);
     }
 
