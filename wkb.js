@@ -163,29 +163,44 @@ function read_wkb_collection(read_fn) {
     };
 }
 
-const readers_map = {
-    "1": read_point,
-    "2": read_linestrig,
-    "3": read_polygon,
-    "6": read_wkb_collection(read_polygon)
-};
+function read_payload(binary_reader, header) {
+    const readers_map = {
+        "1": read_point,
+        "2": read_linestrig,
+        "3": read_polygon,
 
-function read_payload(view) {
-    const reader = binary.reader(view);
-    const header = read_header(reader);
-    return readers_map[header.geometry_type](reader, header);
+// Multi geometries
+
+        "4": read_wkb_collection(read_point),
+        "5": read_wkb_collection(read_linestrig),
+        "6": read_wkb_collection(read_polygon),
+
+// Geometry collection
+
+        "7": read_wkb_collection(read_payload)
+    };
+
+    return readers_map[header.geometry_type](binary_reader, header);
+}
+
+function read(view) {
+    const binary_reader = binary.reader(view);
+    const header = read_header(binary_reader);
+    return read_payload(binary_reader, header);
 }
 
 //demo import wkb_mock from "./mocks/wkb.js";
-//demo const wkb_point = read_payload(decode_hex_string(wkb_mock.point));
-//demo const wkb_polygon = read_payload(decode_hex_string(wkb_mock.polygon));
-//demo const wkb_multipolygon = read_payload(
+//demo const wkb_point = read(decode_hex_string(wkb_mock.point));
+//demo const wkb_polygon = read(decode_hex_string(wkb_mock.polygon));
+//demo const wkb_multipolygon = read(
 //demo     decode_hex_string(wkb_mock.multipolygon
 //demo ));
+//demo const wkb_linstring = read(decode_hex_string(wkb_mock.linestring));
+//demo const wkb_collection = read(decode_hex_string(wkb_mock.collection));
 
 
 export default Object.freeze({
     decode_hex_string,
     encode_hex_string,
-    read: read_payload
+    read
 });
