@@ -112,7 +112,17 @@ function make_instance(view) {
         const num_rings = read_uint32();
         const rings = [];
         for (let i = 0; i < num_rings; i++) {
-            rings.push(read_linestrig());
+            rings.push([read_linestrig()]);
+            console.log({rings});
+        }
+        return rings;
+    }
+
+    function read_multi_polygon() {
+        const num_polygons = read_uint32();
+        const rings = [];
+        for (let i = 0; i < num_polygons; i++) {
+            rings.push([read_polygon()]);
             console.log({rings});
         }
         return rings;
@@ -121,7 +131,8 @@ function make_instance(view) {
     const readers_map = {
         "1": read_point,
         "2": read_linestrig,
-        "3": read_polygon
+        "3": read_polygon,
+        "6": read_multi_polygon
     };
 
     function header() {
@@ -146,9 +157,14 @@ function make_instance(view) {
 
 import wkb_mock from "./mocks/wkb.js";
 const wkb = make_instance(decode_hex_string(wkb_mock.hex_string));
-wkb.header();
+const wkb_multipolygon = make_instance(decode_hex_string(wkb_mock.multipolygon));
+const wkb_point = make_instance(decode_hex_string(wkb_mock.point));
+const header = wkb.header();
 try {
-    wkb.geometry();
+    const geom = wkb.geometry();
+    const geom_multipolygon = wkb_multipolygon.geometry();
+    const geom_point = wkb_point.geometry();
+    const geom_point_header = wkb_point.header();
 } catch (err) {
     console.log(err);
 }
