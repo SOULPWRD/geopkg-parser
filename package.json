@@ -5,9 +5,13 @@
     "author": {
         "name": "Martin Pravda"
     },
+    "scripts": {
+        "build": "esbuild ./sqlite --bundle --format=esm --outfile=dist/geopkg.js"
+    },
     "license": "MIT",
     "devDependencies": {
         "acorn": "latest",
-        "acorn-walk": "latest"
+        "acorn-walk": "latest",
+        "esbuild": "0.24.2"
     }
 }

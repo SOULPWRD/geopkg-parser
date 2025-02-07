@@ -1,6 +1,6 @@
 /*jslint browser, node, devel */
 
-import sqlite from "../sqlite.js";
+import sqlite from "../dist/geopkg.js";
 import fs from "fs/promises";
 
 // Read local file data.gpkg to ArrayBuffer
