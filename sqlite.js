@@ -81,6 +81,15 @@ function sqlite(buffer) {
         }).flat();
     }
 
+    function show_tables() {
+        const schema = master_schema();
+        return schema.filter(function (table) {
+            return table.type === "table";
+        }).map(function (table) {
+            return {name: table.tbl_name};
+        });
+    }
+
     function from(table_name, offset = 0, limit = undefined) {
         const schema = master_schema();
         const schema_row = schema?.find(
@@ -108,7 +117,8 @@ function sqlite(buffer) {
     return Object.freeze({
         from,
         master_schema,
-        parsed
+        parsed,
+        show_tables
     });
 }
 
