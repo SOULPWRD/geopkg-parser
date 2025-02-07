@@ -6,7 +6,8 @@
         "name": "Martin Pravda"
     },
     "scripts": {
-        "build": "esbuild ./sqlite --bundle --format=esm --outfile=dist/geopkg.js"
+        "build": "esbuild ./sqlite --bundle --format=esm --outfile=dist/geopkg.js",
+        "build:min": "esbuild ./sqlite --bundle --format=esm --minify --outfile=dist/geopkg.min.js"
     },
     "license": "MIT",
     "devDependencies": {
